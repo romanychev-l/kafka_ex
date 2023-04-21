@@ -1,0 +1,119 @@
+version: '3.7'
+
+networks:
+  kafka_net:
+    driver: bridge
+
+services:
+  send_word:
+    build:
+      context: ./send_word
+    networks:
+      - kafka_net
+    image: send_word
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - zookeeper
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    ports:
+      - 0.0.0.0:5006:5006
+  send_word_2:
+    build:
+      context: ./send_word_2
+    networks:
+      - kafka_net
+    image: send_word_2
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - zookeeper
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    ports:
+      - 0.0.0.0:5005:5005
+  count_words:
+    build:
+      context: ./count_words
+    deploy:
+      replicas: 1
+    networks:
+      - kafka_net
+    image: count_words
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+      - kafka-1
+      - kafka-2
+      - kafka-3
+  count_words_2:
+    build:
+      context: ./count_words_2
+    deploy:
+      replicas: 1
+    networks:
+      - kafka_net
+    image: count_words_2
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+      - kafka-1
+      - kafka-2
+      - kafka-3
+  zookeeper:
+    image: 'bitnami/zookeeper:3.8.1'
+    networks:
+      - kafka_net
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka-1:
+    image: 'bitnami/kafka:3.4.0'
+    networks:
+      - kafka_net
+    ports:
+      - '9092'
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9092
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+    depends_on:
+      - zookeeper
+  kafka-2:
+    image: 'bitnami/kafka:3.4.0'
+    networks:
+      - kafka_net
+    ports:
+      - '9092'
+    environment:
+      - KAFKA_BROKER_ID=2
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9092
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+    depends_on:
+      - zookeeper
+  kafka-3:
+    image: 'bitnami/kafka:3.4.0'
+    networks:
+      - kafka_net
+    ports:
+      - '9092'
+    environment:
+      - KAFKA_BROKER_ID=3
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-3:9092
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+    depends_on:
+      - zookeeper
+
